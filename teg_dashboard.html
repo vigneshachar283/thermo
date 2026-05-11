@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEG Energy Harvester | Waste Heat Recovery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="teg_style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar/Nav -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i data-lucide="zap" class="icon-zap"></i>
+                <span>MCIOT</span>
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item active" data-section="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</li>
+                <li class="nav-item" data-section="details"><i data-lucide="info"></i> Project Details</li>
+                <li class="nav-item" data-section="config"><i data-lucide="settings"></i> Configuration</li>
+                <li class="nav-item" data-section="files"><i data-lucide="folder"></i> Project Files</li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="header-text">
+                    <h1>Thermoelectric Waste Heat Energy Harvesting</h1>
+                    <p>Real-time performance monitoring of TEC1-12706 & SX1308 System</p>
+                </div>
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span>
+                    <span class="status-text">System Active (Sim)</span>
+                </div>
+                <button id="liveFeedToggle" class="live-btn">
+                    <i data-lucide="wifi-off"></i> Go Live
+                </button>
+            </header>
+
+            <section id="dashboardSection" class="view-section active">
+                <div class="overview-grid">
+                    <!-- Control Card -->
+                    <div class="card control-card">
+                        <h3>Simulation Controls</h3>
+                        <div class="input-group">
+                            <label for="tempDiff">Temperature Difference (ΔT): <span id="tempValue">60</span>°C</label>
+                            <input type="range" id="tempDiff" min="0" max="100" value="60" step="1">
+                            <div class="range-labels">
+                                <span>0°C</span>
+                                <span>50°C</span>
+                                <span>100°C</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="loadRes">Load Resistance (R<sub>L</sub>): <span id="loadValue">2.0</span> Ω</label>
+                            <input type="range" id="loadRes" min="0.1" max="10" value="2.0" step="0.1">
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="simulation-modes">
+                            <h4>Scenario Presets</h4>
+                            <div class="preset-grid">
+                                <button class="preset-btn" data-scenario="automotive">
+                                    <i data-lucide="car"></i> Automotive
+                                </button>
+                                <button class="preset-btn" data-scenario="industrial">
+                                    <i data-lucide="factory"></i> Industrial
+                                </button>
+                                <button class="preset-btn" data-scenario="wearable">
+                                    <i data-lucide="watch"></i> Wearable
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="demo-controls">
+                            <h4>Auto-Demo Sweep</h4>
+                            <button id="demoToggle" class="demo-btn">
+                                <i data-lucide="play"></i> Start Demo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i data-lucide="thermometer"></i></div>
+                            <div class="stat-info">
+                                <label>TEG Raw Voltage</label>
+                                <div class="value" id="rawVoltage">1.50 V</div>
+                            </div>
+                        </div>
+                        <div class="stat-card boosted">
+                            <div class="stat-icon"><i data-lucide="trending-up"></i></div>
+                            <div class="stat-info">
+                                <label>Boosted Voltage (SX1308)</label>
+                                <div class="value" id="boostedVoltage">5.00 V</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i data-lucide="zap"></i></div>
+                            <div class="stat-info">
+                                <label>Current Output</label>
+                                <div class="value" id="currentOutput">375 mA</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i data-lucide="battery-charging"></i></div>
+                            <div class="stat-info">
+                                <label>Power Harvested</label>
+                                <div class="value" id="powerOutput">1.88 W</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Area -->
+                    <div class="card chart-card wide">
+                        <h3>I-V & P-V Characteristics</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="ivChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card visual-card">
+                        <h3>Project Simulation</h3>
+                        <div class="teg-visual">
+                            <div class="heat-source">
+                                <span class="label">Hot Side (Waste Heat)</span>
+                                <div class="heat-waves" id="heatWaves"></div>
+                            </div>
+                            <div class="teg-module">
+                                <div class="p-n-junctions">
+                                    <!-- Generated by JS -->
+                                </div>
+                            </div>
+                            <div class="cold-side">
+                                <span class="label">Cold Side (Heat Sink)</span>
+                            </div>
+                            
+                            <!-- Circuit Simulation -->
+                            <div class="circuit-container">
+                                <div class="wire-path">
+                                    <div class="electron-stream" id="electronStream"></div>
+                                </div>
+                                <div class="load-component">
+                                    <i data-lucide="lightbulb" id="loadIndicator"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Log / Console -->
+                    <div class="card console-card wide">
+                        <h3><i data-lucide="terminal"></i> System Event Log</h3>
+                        <div id="eventLog" class="event-log">
+                            <div class="log-entry">
+                                <span class="log-time">[00:00:00]</span> 
+                                <span class="log-msg">System initialized in Simulation Mode.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="detailsSection" class="view-section">
+                <div class="details-grid">
+                    <div class="card detail-content">
+                        <h3><i data-lucide="book-open"></i> Abstract</h3>
+                        <p>This project presents the design and simulation of a thermoelectric waste heat energy harvesting system using thermoelectric generators (TEG). A significant amount of thermal energy generated in automotive engines and industrial systems is wasted in the form of heat. The proposed system aims to recover a portion of this waste heat and convert it into useful electrical energy using the Seebeck effect.</p>
+                        
+                        <div class="divider"></div>
+                        
+                        <h3><i data-lucide="cpu"></i> Components Used</h3>
+                        <ul class="component-list">
+                            <li>
+                                <strong>TEC1-12706 Module:</strong> A Peltier module used in reverse (Seebeck mode) to generate electricity from temperature gradients.
+                            </li>
+                            <li>
+                                <strong>SX1308 Boost Converter:</strong> A high-frequency boost converter used to step up the low TEG output voltage to a regulated level (e.g., 5V) for powering electronics.
+                            </li>
+                            <li>
+                                <strong>Heat Sinks:</strong> Crucial for maintaining the temperature difference (ΔT) by cooling the "cold side."
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card detail-content">
+                        <h3><i data-lucide="activity"></i> Mathematical Principles</h3>
+                        <div class="formula-box">
+                            <p><strong>Seebeck Effect:</strong> V = α × ΔT</p>
+                            <p>Where α is the Seebeck coefficient and ΔT is the temperature difference.</p>
+                        </div>
+                        <p>The system's efficiency depends on the thermal conductivity of the TEG material and the efficiency of the power conditioning stage (SX1308). In this implementation (Modules in Series), we use a composite Seebeck coefficient of 0.052V/°C, achieving a peak power of 4.16W at ΔT=100°C as shown in our experimental results.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="configSection" class="view-section">
+                <div class="card config-card">
+                    <h3><i data-lucide="sliders"></i> Simulation Parameters</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>Seebeck Coefficient (V/°C)</label>
+                            <input type="number" id="cfgSeebeck" value="0.025" step="0.001">
+                        </div>
+                        <div class="config-item">
+                            <label>Internal Resistance (Ω)</label>
+                            <input type="number" id="cfgRi" value="2.0" step="0.1">
+                        </div>
+                        <div class="config-item">
+                            <label>Boost Efficiency (%)</label>
+                            <input type="number" id="cfgEff" value="90" min="0" max="100">
+                        </div>
+                        <div class="config-item">
+                            <label>Target Boost Voltage (V)</label>
+                            <input type="number" id="cfgTargetV" value="12.0" step="0.1">
+                        </div>
+                        <div class="config-item wide">
+                            <label>MCIOT Hardware API Endpoint</label>
+                            <input type="text" id="cfgUrl" value="https://api.mciot.project/data" placeholder="e.g. http://192.168.1.50/data">
+                        </div>
+                    </div>
+                    <button id="saveConfig" class="demo-btn">
+                        <i data-lucide="save"></i> Save Configuration
+                    </button>
+                </div>
+            </section>
+
+            <section id="filesSection" class="view-section">
+                <div class="card files-card">
+                    <h3><i data-lucide="folder-open"></i> Project Source Files</h3>
+                    <div class="file-list">
+                        <a href="teg_dashboard.html" class="file-item">
+                            <i data-lucide="file-code" class="text-orange"></i>
+                            <div class="file-info">
+                                <span class="file-name">teg_dashboard.html</span>
+                                <span class="file-desc">Main Dashboard Structure</span>
+                            </div>
+                            <i data-lucide="external-link" class="link-icon"></i>
+                        </a>
+                        <a href="teg_script.js" class="file-item">
+                            <i data-lucide="file-json" class="text-cyan"></i>
+                            <div class="file-info">
+                                <span class="file-name">teg_script.js</span>
+                                <span class="file-desc">Simulation & Connectivity Logic</span>
+                            </div>
+                            <i data-lucide="external-link" class="link-icon"></i>
+                        </a>
+                        <a href="teg_style.css" class="file-item">
+                            <i data-lucide="file-type" class="text-purple"></i>
+                            <div class="file-info">
+                                <span class="file-name">teg_style.css</span>
+                                <span class="file-desc">UI Styling & Animations</span>
+                            </div>
+                            <i data-lucide="external-link" class="link-icon"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <h3><i data-lucide="file-text"></i> Documentation</h3>
+                    <div class="file-list">
+                        <div class="file-item disabled">
+                            <i data-lucide="file-text"></i>
+                            <div class="file-info">
+                                <span class="file-name">IEEE_TEG_WasteHeat.pdf</span>
+                                <span class="file-desc">Research Paper (Reference)</span>
+                            </div>
+                            <span class="badge">Reference Only</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="teg_script.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
